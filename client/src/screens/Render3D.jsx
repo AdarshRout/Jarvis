@@ -15,9 +15,39 @@ const Render3D = () => {
   const [isDistracted, setIsDistracted] = useState(false);
   const navigate = useNavigate();
   const videoRef = useRef(null);
+  const containerRef = useRef(null);
+
+  const requestFullscreen = (element) => {
+    if (element.requestFullscreen) {
+      element.requestFullscreen();
+    } else if (element.mozRequestFullScreen) { // Firefox
+      element.mozRequestFullScreen();
+    } else if (element.webkitRequestFullscreen) { // Chrome, Safari, and Opera
+      element.webkitRequestFullscreen();
+    } else if (element.msRequestFullscreen) { // IE/Edge
+      element.msRequestFullscreen();
+    }
+  };
+
+  const exitFullscreen = () => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) { // Firefox
+      document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) { // Chrome, Safari, and Opera
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) { // IE/Edge
+      document.msExitFullscreen();
+    }
+  };
 
   const toggleMaximize = () => {
     setIsMaximized(!isMaximized);
+    if (!isMaximized) {
+      requestFullscreen(containerRef.current);
+    } else {
+      exitFullscreen();
+    }
   };
 
   const checkDistractionRepeatedly = async () => {
@@ -41,8 +71,7 @@ const Render3D = () => {
     setSessionStartTime(new Date());
 
     checkDistractionRepeatedly();
-
-  }, []); 
+  }, []);
 
   const handleEndSession = async () => {
     const endTime = new Date();
@@ -73,7 +102,10 @@ const Render3D = () => {
   };
 
   return (
-    <div className="relative h-screen w-full">
+    <div
+      ref={containerRef}
+      className={`relative w-full ${isMaximized ? "h-full" : "h-screen"}`}
+    >
       <video
         ref={videoRef}
         className="absolute top-0 left-0 w-full h-full object-cover -z-10 transition duration-150 ease-in-out brightness-[50%] lg:brightness-[30%]"
@@ -99,7 +131,6 @@ const Render3D = () => {
       <div
         style={{
           height: "100vh",
-          padding: isMaximized ? "0px" : "100px",
           width: "100%",
           transition: "0.15s ease-in-out",
         }}
